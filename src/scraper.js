@@ -16,8 +16,8 @@ Fecha: 02/03/2025
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 
-const searchTerm = 'planets';  // Terminom a buscar
-const maxClicks = 5; // Profundidad de la búsqueda
+const searchTerm = 'trump';  // Terminom a buscar
+const maxClicks = 2; // Profundidad de la búsqueda
 
 (async () => {
   try {
