@@ -64,7 +64,7 @@ Este es un proyecto escolar desarrollado en **JavaScript** y **Python** que se c
     ```
 
 ### Paso 1: Extracción de Tweets
-1. **Editar** el archivo `src/scraper.js` y cambiar la variable `searchTerm` con el término que se desea buscar: 
+1. **Editar** el archivo `src/scraper.js` y cambiar la variable `searchTerm` con el término que se desea buscar, así como también la variable `maxClicks` para definir la '*profundidad*' de la búsqueda.
 2. **Ejecutar** el archivo `src/scraper.js`:
     ```bash
     node src/scraper.js
@@ -82,5 +82,5 @@ Este es un proyecto escolar desarrollado en **JavaScript** y **Python** que se c
     ```
 3. **Ejecutar** el analizador de sentimientos `src/analyzer.py`:
     ```bash
-    python3 analyzer.py
+    python3 src/analyzer.py
     ```
