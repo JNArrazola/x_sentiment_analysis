@@ -1,0 +1,8 @@
+beautifulsoup4
+requests
+nltk
+matplotlib
+cloudscraper
+selenium
+undetected-chromedriver
+pyqt5
