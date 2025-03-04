@@ -17,7 +17,7 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 
 const searchTerm = 'trump';  // Terminom a buscar
-const maxClicks = 2; // Profundidad de la búsqueda
+const maxClicks = 1; // Profundidad de la búsqueda
 
 (async () => {
   try {
