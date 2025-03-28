@@ -34,7 +34,7 @@ import subprocess
 from nltk.sentiment import SentimentIntensityAnalyzer
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QSplitter,
-    QTextEdit, QLineEdit, QPushButton, QLabel, QMessageBox
+    QTextEdit, QLineEdit, QPushButton, QLabel, QMessageBox, QHBoxLayout
 )
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -52,8 +52,55 @@ class MplCanvas(FigureCanvas):
 class SentimentAnalysisApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Análisis de Sentimiento de Tweets (Nitter + VADER)")
+        self.setWindowTitle("📊 Análisis de Sentimiento de Tweets (Nitter + VADER)")
         self.setGeometry(100, 100, 1200, 700)
+
+        self.light_theme = """
+            QWidget { background-color: #f5f7fa; color: #1c1c1c; font-family: 'Segoe UI'; font-size: 14px; }
+            QLabel { font-size: 18px; font-weight: bold; color: #222; padding: 6px 0; }
+            QLineEdit, QTextEdit {
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                background-color: #ffffff;
+                color: #1c1c1c;
+                font-family: 'Consolas';
+            }
+            QPushButton {
+                padding: 10px 15px;
+                background-color: #0078d4;
+                color: white;
+                border-radius: 6px;
+                font-weight: bold;
+            }
+            QPushButton:hover { background-color: #005ea2; }
+            QSplitter::handle { background-color: #d0d0d0; }
+        """
+
+        self.dark_theme = """
+            QWidget { background-color: #1e1e1e; color: #eeeeee; font-family: 'Segoe UI'; font-size: 14px; }
+            QLabel { font-size: 18px; font-weight: bold; color: #ffffff; padding: 6px 0; }
+            QLineEdit, QTextEdit {
+                padding: 8px;
+                border: 1px solid #444;
+                border-radius: 6px;
+                background-color: #2c2c2c;
+                color: #ffffff;
+                font-family: 'Consolas';
+            }
+            QPushButton {
+                padding: 10px 15px;
+                background-color: #3a85ff;
+                color: white;
+                border-radius: 6px;
+                font-weight: bold;
+            }
+            QPushButton:hover { background-color: #1c6fd6; }
+            QSplitter::handle { background-color: #444; }
+        """
+
+        self.setStyleSheet(self.dark_theme)
+        self.dark_mode_enabled = True
 
         self.tweet_sentiments = []
         self.sentiment_counts = {'positive': 0, 'neutral': 0, 'negative': 0}
@@ -62,22 +109,31 @@ class SentimentAnalysisApp(QMainWindow):
         self.setCentralWidget(central_widget)
         self.main_layout = QVBoxLayout(central_widget)
 
-        self.main_layout.addWidget(QLabel("<h2>Análisis de sentimiento en tweets de Nitter</h2>"))
+        self.main_layout.addWidget(QLabel("📈 <b>Análisis de Sentimiento en Tweets</b>"))
 
+        input_layout = QHBoxLayout()
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Término de búsqueda (ej. trump)")
-        self.main_layout.addWidget(self.search_input)
+        self.search_input.setPlaceholderText("🔍 Término de búsqueda")
+        input_layout.addWidget(self.search_input)
 
         self.depth_input = QLineEdit()
-        self.depth_input.setPlaceholderText("Profundidad de búsqueda (ej. 1 a 5)")
-        self.main_layout.addWidget(self.depth_input)
+        self.depth_input.setPlaceholderText("📄 Profundidad")
+        input_layout.addWidget(self.depth_input)
 
-        self.search_button = QPushButton("Buscar y Analizar")
+        self.search_button = QPushButton("🔎 Buscar y Analizar")
         self.search_button.clicked.connect(self.run_scraper_and_analyze)
-        self.main_layout.addWidget(self.search_button)
+        input_layout.addWidget(self.search_button)
+
+        self.toggle_theme_button = QPushButton("🌓 Cambiar Tema")
+        self.toggle_theme_button.clicked.connect(self.toggle_theme)
+        input_layout.addWidget(self.toggle_theme_button)
+
+        self.main_layout.addLayout(input_layout)
+        self.main_layout.addWidget(QLabel("<hr>"))
 
         self.canvas = MplCanvas(self, width=5, height=3, dpi=100)
         self.main_layout.addWidget(self.canvas)
+        self.main_layout.addWidget(QLabel("<hr>"))
 
         self.splitter = QSplitter(Qt.Horizontal)
         self.positive_text = QTextEdit()
@@ -90,6 +146,7 @@ class SentimentAnalysisApp(QMainWindow):
         self.splitter.addWidget(self.neutral_text)
         self.splitter.addWidget(self.negative_text)
         self.splitter.setSizes([400, 400, 400])
+
         self.main_layout.addWidget(self.splitter)
 
     def run_scraper_and_analyze(self):
@@ -105,10 +162,10 @@ class SentimentAnalysisApp(QMainWindow):
             if depth <= 0:
                 raise ValueError
         except:
-            depth = 1  # Valor por defecto seguro
+            depth = 1
 
         self.search_button.setEnabled(False)
-        self.search_button.setText("Buscando tweets...")
+        self.search_button.setText("Buscando...")
 
         try:
             subprocess.run(["node", "scraper.js", term, str(depth)], check=True)
@@ -141,7 +198,7 @@ class SentimentAnalysisApp(QMainWindow):
             QMessageBox.critical(self, "Error inesperado", str(e))
         finally:
             self.search_button.setEnabled(True)
-            self.search_button.setText("Buscar y Analizar")
+            self.search_button.setText("🔎 Buscar y Analizar")
 
     def display_results(self):
         all_positive = sorted([ts for ts in self.tweet_sentiments if ts[1] == 'positive'], key=lambda x: x[2], reverse=True)
@@ -157,15 +214,23 @@ class SentimentAnalysisApp(QMainWindow):
         self.canvas.axes.set_title("Distribución de Sentimientos")
         self.canvas.draw()
 
-        self.positive_text.setHtml("<h3 style='color:green'>Tweets Positivos</h3>" + "".join(
+        self.positive_text.setHtml("<h3 style='color:lime'>Tweets Positivos</h3>" + "".join(
             f"<p><b>Score: {c:.2f}</b><br>{t}</p>" for t, s, c in all_positive
         ))
-        self.neutral_text.setHtml("<h3 style='color:gray'>Tweets Neutrales</h3>" + "".join(
+        self.neutral_text.setHtml("<h3 style='color:lightgray'>Tweets Neutrales</h3>" + "".join(
             f"<p><b>Score: {c:.2f}</b><br>{t}</p>" for t, s, c in all_neutral
         ) or "<p>No se encontraron tweets neutrales.</p>")
-        self.negative_text.setHtml("<h3 style='color:red'>Tweets Negativos</h3>" + "".join(
+        self.negative_text.setHtml("<h3 style='color:salmon'>Tweets Negativos</h3>" + "".join(
             f"<p><b>Score: {c:.2f}</b><br>{t}</p>" for t, s, c in all_negative
         ))
+
+    def toggle_theme(self):
+        if self.dark_mode_enabled:
+            self.setStyleSheet(self.light_theme)
+            self.dark_mode_enabled = False
+        else:
+            self.setStyleSheet(self.dark_theme)
+            self.dark_mode_enabled = True
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
